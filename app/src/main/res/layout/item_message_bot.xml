@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingTop="8dp">
+
+    <ImageView
+        android:id="@+id/item_message_bot_imageView_message_profile"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:background="@drawable/circle"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginStart="8dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:contentDescription="@string/message_profile_image" />
+
+    <TextView
+        android:id="@+id/item_message_bot_textView_message_sender"
+        tools:text="John Doe"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        app:layout_constraintLeft_toRightOf="@+id/item_message_bot_imageView_message_profile"
+        android:layout_marginStart="8dp"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="4dp" />
+
+    <TextView
+        android:id="@+id/item_message_bot_textView_message_body"
+        tools:text="hi man, how are you?"
+        android:background="@drawable/rounded_rectangle_orange"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxWidth="240dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:textColor="#ffffff"
+        android:layout_marginTop="4dp"
+        app:layout_constraintTop_toBottomOf="@+id/item_message_bot_textView_message_sender"
+        app:layout_constraintLeft_toRightOf="@+id/item_message_bot_imageView_message_profile"
+        android:layout_marginStart="8dp" />
+
+    <TextView
+        android:id="@+id/item_message_bot_textView_message_time"
+        tools:text="11:40"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        app:layout_constraintLeft_toRightOf="@+id/item_message_bot_textView_message_body"
+        android:layout_marginStart="4dp"
+        app:layout_constraintBottom_toBottomOf="@+id/item_message_bot_textView_message_body" />
+
+</android.support.constraint.ConstraintLayout>
