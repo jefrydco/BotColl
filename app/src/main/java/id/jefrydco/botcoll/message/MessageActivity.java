@@ -14,6 +14,10 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +25,11 @@ import id.jefrydco.botcoll.R;
 import id.jefrydco.botcoll.message.model.BaseMessage;
 import id.jefrydco.botcoll.message.model.BotMessage;
 import id.jefrydco.botcoll.message.model.UserMessage;
+import id.jefrydco.botcoll.utils.NetworkUtils;
 import id.jefrydco.botcoll.utils.ULID;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class MessageActivity extends AppCompatActivity {
 
@@ -31,12 +39,55 @@ public class MessageActivity extends AppCompatActivity {
 
     private ULID ulid = new ULID();
 
+    private List<BaseMessage> mBaseMessageList;
+
     private RecyclerView mRecyclerViewMessageList;
     private MessageListAdapter mMessageListAdapter;
     private LinearLayoutManager mLinearLayoutManager;
     private EditText mEditTextChatboxInput;
     private Button mButtonChatboxSend;
     private TextView mTextViewNewMessage;
+
+    private MessageService mMessageService;
+    private Call<String> mCall;
+    private Callback<String> mCallback = new Callback<String>() {
+        @Override
+        public void onResponse(Call<String> call, Response<String> response) {
+            String jsonResponse = response.body();
+
+            try {
+                JSONObject rootObject = new JSONObject(jsonResponse);
+                JSONArray historyArray = rootObject.getJSONArray("history");
+
+                if (historyArray.length() > 0) {
+
+                    for (int index = 0; index < historyArray.length(); index++) {
+                        JSONObject historyArrayItem = historyArray.getJSONObject(index);
+
+                        ULID.Value botIdValue = ulid.nextValue();
+                        String botId = botIdValue.toString();
+
+                        String day = historyArrayItem.getString("hari");
+                        int subject = historyArrayItem.getInt("matkul");
+                        String room = historyArrayItem.getString("kelas");
+                        String date = historyArrayItem.getString("tanggal");
+
+                        mMessageListAdapter.addFirst(new BotMessage(
+                                botId,
+                                "Jadwal matkul hari " + day + " tanggal " + date + " di kelas" + room + " adalah " + subject,
+                                System.currentTimeMillis()));
+                    }
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public void onFailure(Call<String> call, Throwable t) {
+
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -140,6 +191,10 @@ public class MessageActivity extends AppCompatActivity {
         String userId = ulid.nextULID();
         UserMessage userMessage = new UserMessage(userId, message, System.currentTimeMillis());
         mMessageListAdapter.addFirst(userMessage);
+
+        mMessageService = (MessageService) NetworkUtils.fetch(MessageService.class);
+        mCall = mMessageService.getHistory(message);
+        mCall.enqueue(mCallback);
 
         displayTextViewNewMessage();
     }
