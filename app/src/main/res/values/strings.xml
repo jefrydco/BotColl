@@ -6,4 +6,5 @@
     <string name="new_message">New Message</string>
     <string name="login">Login</string>
     <string name="no_account_yet_create_one">No account yet? Create one</string>
+    <string name="action_logout">Logout</string>
 </resources>
