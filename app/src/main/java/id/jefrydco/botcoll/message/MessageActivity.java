@@ -48,12 +48,15 @@ public class MessageActivity extends AppCompatActivity {
     private Button mButtonChatboxSend;
     private TextView mTextViewNewMessage;
 
+    String mMessage;
+
     private MessageService mMessageService;
     private Call<String> mCall;
     private Callback<String> mCallback = new Callback<String>() {
         @Override
         public void onResponse(Call<String> call, Response<String> response) {
             String jsonResponse = response.body();
+            Log.d(TAG, "onResponse: jsonResponse: " + jsonResponse);
 
             try {
                 JSONObject rootObject = new JSONObject(jsonResponse);
@@ -67,19 +70,60 @@ public class MessageActivity extends AppCompatActivity {
                         ULID.Value botIdValue = ulid.nextValue();
                         String botId = botIdValue.toString();
 
-                        String day = historyArrayItem.getString("hari");
-                        int subject = historyArrayItem.getInt("matkul");
-                        String room = historyArrayItem.getString("kelas");
-                        String date = historyArrayItem.getString("tanggal");
+                        switch (mMessage) {
+                            case "jadwal kuliah hari senin":
+                                String dayCollege = historyArrayItem.getString("hari");
+                                int subjectCollege = historyArrayItem.getInt("matkul");
+                                String roomCollege = historyArrayItem.getString("kelas");
+                                String dateCollege = historyArrayItem.getString("tanggal");
 
-                        mMessageListAdapter.addFirst(new BotMessage(
-                                botId,
-                                "Jadwal matkul hari " + day + " tanggal " + date + " di kelas" + room + " adalah " + subject,
-                                System.currentTimeMillis()));
+                                mMessageListAdapter.addFirst(new BotMessage(
+                                        botId,
+                                        "Jadwal matkul hari " + dayCollege + " tanggal " + dateCollege + " di kelas " + roomCollege + " adalah " + subjectCollege,
+                                        System.currentTimeMillis()));
+                                break;
+                            case "jadwal ujian hari senin":
+                                String dateTest = historyArrayItem.getString("tanggal");
+                                String subjectTest = historyArrayItem.getString("id_jadkul");
+                                String roomTest = historyArrayItem.getString("kelas");
+                                mMessageListAdapter.addFirst(new BotMessage(
+                                        botId,
+                                        "Jadwal ujian tanggal " + dateTest + " di kelas " + roomTest + " adalah " + subjectTest,
+                                        System.currentTimeMillis()
+                                ));
+
+                                break;
+                        }
                     }
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
+                switch (mMessage) {
+                    case "hello":
+                    case "hai":
+                    case "helo":
+                        mMessageListAdapter.addFirst(new BotMessage(
+                                ulid.nextULID(),
+                                "ya?",
+                                System.currentTimeMillis()
+                        ));
+                        break;
+                    case "lagi apa?":
+                    case "hai lagi apa?":
+                        mMessageListAdapter.addFirst(new BotMessage(
+                                ulid.nextULID(),
+                                "kepo deh...",
+                                System.currentTimeMillis()
+                        ));
+                        break;
+                    default:
+                        mMessageListAdapter.addFirst(new BotMessage(
+                                ulid.nextULID(),
+                                "Monmap yaaa aing ndak ngerti maksud kamu :(",
+                                System.currentTimeMillis()
+                        ));
+                        break;
+                }
             }
         }
 
@@ -160,9 +204,9 @@ public class MessageActivity extends AppCompatActivity {
         });
 
         mButtonChatboxSend.setOnClickListener(v -> {
-            String message = mEditTextChatboxInput.getText().toString();
-            if (message.length() > 0) {
-                sendUserMessage(message);
+            mMessage = mEditTextChatboxInput.getText().toString();
+            if (mMessage.length() > 0) {
+                sendUserMessage(mMessage);
                 mEditTextChatboxInput.setText("");
             }
         });
@@ -189,11 +233,22 @@ public class MessageActivity extends AppCompatActivity {
 
     private void sendUserMessage(String message) {
         String userId = ulid.nextULID();
+        String keyword = "";
+
+        switch (message) {
+            case "jadwal kuliah hari senin":
+                keyword = "jadwal_kuliah hari senin";
+                break;
+            case "jadwal ujian hari senin":
+                keyword = "jadwal_ujian tanggal 1/06/2018";
+                break;
+        }
+
         UserMessage userMessage = new UserMessage(userId, message, System.currentTimeMillis());
         mMessageListAdapter.addFirst(userMessage);
 
         mMessageService = (MessageService) NetworkUtils.fetch(MessageService.class);
-        mCall = mMessageService.getHistory(message);
+        mCall = mMessageService.getHistory(keyword);
         mCall.enqueue(mCallback);
 
         displayTextViewNewMessage();
@@ -211,15 +266,22 @@ public class MessageActivity extends AppCompatActivity {
     private List<BaseMessage> generateBaseMessageList(int count) {
         List<BaseMessage> baseMessageList = new ArrayList<>();
 
-        for (int index = 0; index < count; index++) {
-            ULID.Value userIdValue = ulid.nextValue();
-            String userId = userIdValue.toString();
-            baseMessageList.add(new UserMessage(userId, "User Hello World " + index, System.currentTimeMillis()));
-
-            ULID.Value botIdValue = ulid.nextValue();
-            String botId = botIdValue.toString();
-            baseMessageList.add(new BotMessage(botId, "Bot Hello world " + index, System.currentTimeMillis()));
-        }
+//        for (int index = 0; index < count; index++) {
+//            ULID.Value userIdValue = ulid.nextValue();
+//            String userId = userIdValue.toString();
+//            baseMessageList.add(new UserMessage(userId, "User Hello World " + index, System.currentTimeMillis()));
+//
+//            ULID.Value botIdValue = ulid.nextValue();
+//            String botId = botIdValue.toString();
+//            baseMessageList.add(new BotMessage(botId, "Bot Hello world " + index, System.currentTimeMillis()));
+//        }
+        baseMessageList.add(new BotMessage(
+                ulid.nextULID(),
+                "Halooo!!!\n" +
+                        "Selamat datang di BotColl, kamu dapat melihat jadwal kuliah dengan mengetikkan keyword berikut:\n" +
+                        "1. \"Jadwal hari senin\" atau \"jadwal kuliah hari senin\".",
+                System.currentTimeMillis()
+        ));
 
         return baseMessageList;
     }
