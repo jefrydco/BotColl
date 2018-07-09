@@ -56,13 +56,18 @@ public class MessageActivity extends AppCompatActivity {
         @Override
         public void onResponse(Call<String> call, Response<String> response) {
             String jsonResponse = response.body();
-            Log.d(TAG, "onResponse: jsonResponse: " + jsonResponse);
 
             try {
                 JSONObject rootObject = new JSONObject(jsonResponse);
                 JSONArray historyArray = rootObject.getJSONArray("history");
 
                 if (historyArray.length() > 0) {
+
+                    StringBuilder subjectPIC = new StringBuilder();
+                    subjectPIC.append("Taraaa!!! Berikut daftar PJ kelas kamu:\n");
+
+                    StringBuilder subjectList = new StringBuilder();
+                    subjectList.append("Yuhuu!!! Berikut daftar matkul kelas kamu:\n");
 
                     for (int index = 0; index < historyArray.length(); index++) {
                         JSONObject historyArrayItem = historyArray.getJSONObject(index);
@@ -91,14 +96,51 @@ public class MessageActivity extends AppCompatActivity {
                                         "Jadwal ujian tanggal " + dateTest + " di kelas " + roomTest + " adalah " + subjectTest,
                                         System.currentTimeMillis()
                                 ));
-
+                                break;
+                            case "daftar pj":
+                            case "pj":
+                                String picName = historyArrayItem.getString("nama_pj");
+                                String picSubject = historyArrayItem.getString("id_matkul");
+                                subjectPIC.append(index + 1).append(". ").append(picName);
+                                if (!(index == historyArray.length() - 1)) {
+                                    subjectPIC.append("\n");
+                                }
+                                break;
+                            case "daftar matkul":
+                            case "matkul":
+                                String subjectName = historyArrayItem.getString("matkul");
+                                subjectList.append(index + 1).append(". ").append(subjectName);
+                                if (!(index == historyArray.length() - 1)) {
+                                    subjectList.append("\n");
+                                }
                                 break;
                         }
+                    }
+
+                    if (!subjectPIC.toString().equals("Taraaa!!! Berikut daftar PJ kelas kamu:\n")) {
+                        mMessageListAdapter.addFirst(new BotMessage(
+                                ulid.nextULID(),
+                                subjectPIC.toString(),
+                                System.currentTimeMillis()
+                        ));
+                    }
+
+                    if (!subjectList.toString().equals("Yuhuu!!! Berikut daftar matkul kelas kamu:\n")) {
+                        mMessageListAdapter.addFirst(new BotMessage(
+                                ulid.nextULID(),
+                                subjectList.toString(),
+                                System.currentTimeMillis()
+                        ));
                     }
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
                 switch (mMessage) {
+                    case "keyword":
+                    case "daftar keyword":
+                    case "daftar kata kunci":
+                        mMessageListAdapter.addFirst(appendKeywordMessage());
+                        break;
                     case "hello":
                     case "hai":
                     case "helo":
@@ -146,7 +188,9 @@ public class MessageActivity extends AppCompatActivity {
     }
 
     private void setupAdapter() {
-        List<BaseMessage> baseMessageList = generateBaseMessageList(DATA_SIZE);
+//        List<BaseMessage> baseMessageList = generateBaseMessageList(DATA_SIZE);
+        List<BaseMessage> baseMessageList = new ArrayList<>();
+        baseMessageList.add(appendKeywordMessage());
 
         mMessageListAdapter = new MessageListAdapter(this, baseMessageList);
         mMessageListAdapter.setOnItemClickListener(new MessageListAdapter.OnItemClickListener() {
@@ -204,7 +248,7 @@ public class MessageActivity extends AppCompatActivity {
         });
 
         mButtonChatboxSend.setOnClickListener(v -> {
-            mMessage = mEditTextChatboxInput.getText().toString();
+            mMessage = mEditTextChatboxInput.getText().toString().toLowerCase();
             if (mMessage.length() > 0) {
                 sendUserMessage(mMessage);
                 mEditTextChatboxInput.setText("");
@@ -242,6 +286,15 @@ public class MessageActivity extends AppCompatActivity {
             case "jadwal ujian hari senin":
                 keyword = "jadwal_ujian tanggal 1/06/2018";
                 break;
+            case "daftar pj":
+            case "pj":
+                keyword = "pj";
+                break;
+            case "daftar matkul":
+            case "matkul":
+                keyword = "daftar_matkul";
+                break;
+
         }
 
         UserMessage userMessage = new UserMessage(userId, message, System.currentTimeMillis());
@@ -266,23 +319,30 @@ public class MessageActivity extends AppCompatActivity {
     private List<BaseMessage> generateBaseMessageList(int count) {
         List<BaseMessage> baseMessageList = new ArrayList<>();
 
-//        for (int index = 0; index < count; index++) {
-//            ULID.Value userIdValue = ulid.nextValue();
-//            String userId = userIdValue.toString();
-//            baseMessageList.add(new UserMessage(userId, "User Hello World " + index, System.currentTimeMillis()));
-//
-//            ULID.Value botIdValue = ulid.nextValue();
-//            String botId = botIdValue.toString();
-//            baseMessageList.add(new BotMessage(botId, "Bot Hello world " + index, System.currentTimeMillis()));
-//        }
-        baseMessageList.add(new BotMessage(
+        for (int index = 0; index < count; index++) {
+            ULID.Value userIdValue = ulid.nextValue();
+            String userId = userIdValue.toString();
+            baseMessageList.add(new UserMessage(userId, "User Hello World " + index, System.currentTimeMillis()));
+
+            ULID.Value botIdValue = ulid.nextValue();
+            String botId = botIdValue.toString();
+            baseMessageList.add(new BotMessage(botId, "Bot Hello world " + index, System.currentTimeMillis()));
+        }
+        return baseMessageList;
+    }
+
+    private BaseMessage appendKeywordMessage() {
+        return new BotMessage(
                 ulid.nextULID(),
                 "Halooo!!!\n" +
                         "Selamat datang di BotColl, kamu dapat melihat jadwal kuliah dengan mengetikkan keyword berikut:\n" +
-                        "1. \"Jadwal hari senin\" atau \"jadwal kuliah hari senin\".",
+                        "1. Jadwal kuliah hari <hari>\n" +
+                        "2. Jadwal ujian hari <hari>\n" +
+                        "3. Daftar pj\n" +
+                        "4. Daftar matkul" +
+                        "\n\n" +
+                        "Kuy kuy langsung ajah cobain BotColl dan rasakan sensaninya...",
                 System.currentTimeMillis()
-        ));
-
-        return baseMessageList;
-    }
+            );
+        }
 }
