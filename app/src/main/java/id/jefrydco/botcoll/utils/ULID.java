@@ -222,11 +222,7 @@ public class ULID {
         public int compareTo(Value val) {
             // The ordering is intentionally set up so that the ULIDs
             // can simply be numerically compared as two numbers
-            return (this.mostSignificantBits < val.mostSignificantBits ? -1 :
-                    (this.mostSignificantBits > val.mostSignificantBits ? 1 :
-                            (this.leastSignificantBits < val.leastSignificantBits ? -1 :
-                                    (this.leastSignificantBits > val.leastSignificantBits ? 1 :
-                                            0))));
+            return (Long.compare(this.leastSignificantBits, val.leastSignificantBits));
         }
 
         @Override

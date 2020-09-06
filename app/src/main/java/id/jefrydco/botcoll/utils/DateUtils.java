@@ -30,12 +30,12 @@ public class DateUtils {
 
     public static int getHourOfDay(long timeInMillis) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("H", Locale.getDefault());
-        return Integer.valueOf(dateFormat.format(timeInMillis));
+        return Integer.parseInt(dateFormat.format(timeInMillis));
     }
 
     public static int getMinute(long timeInMillis) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("m", Locale.getDefault());
-        return Integer.valueOf(dateFormat.format(timeInMillis));
+        return Integer.parseInt(dateFormat.format(timeInMillis));
     }
 
     /**
